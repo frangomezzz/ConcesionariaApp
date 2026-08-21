@@ -1,0 +1,6 @@
+@model MisVentasViewModel
+@{
+    var action = Context.Request.Path.Value?.Contains("MisVentas", StringComparison.OrdinalIgnoreCase) == true ? "MisVentas" : "Index";
+    var query = Context.Request.Query;
+}
+<div class="pagination-bar"><span>Mostrando @((Model.Page - 1) * Model.PageSize + (Model.TotalItems == 0 ? 0 : 1)) a @Math.Min(Model.Page * Model.PageSize, Model.TotalItems) de @Model.TotalItems ventas</span><div class="pagination-links">@for (var i = 1; i <= Model.TotalPages; i++) { <a class="@(i == Model.Page ? "active" : "")" href="@Url.Action(action, "Ventas", new { page = i, desde = query["desde"].ToString(), hasta = query["hasta"].ToString(), estado = query["estado"].ToString(), buscarVehiculo = query["buscarVehiculo"].ToString(), buscar = query["buscar"].ToString() })">@i</a> }</div></div>

@@ -1,0 +1,7 @@
+@model dynamic
+@{
+    var page = (int)Model.Model.Page;
+    var totalPages = (int)Model.Model.TotalPages;
+    var route = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+<div class="pagination-bar"><span>Mostrando @((page - 1) * (int)Model.Model.PageSize + (Model.Model.TotalItems == 0 ? 0 : 1)) a @Math.Min(page * (int)Model.Model.PageSize, (int)Model.Model.TotalItems) de @Model.Model.TotalItems registros</span><div class="pagination-links">@if (page > 1) { <a asp-controller="@route" asp-action="Index" asp-route-page="@(page - 1)" asp-route-tipo="@Model.tipo" asp-route-estado="@Model.estado" asp-route-activo="@Model.activo">‹</a> } @for (var i = 1; i <= totalPages; i++) { <a class="@(i == page ? "active" : "")" asp-controller="@route" asp-action="Index" asp-route-page="@i" asp-route-tipo="@Model.tipo" asp-route-estado="@Model.estado" asp-route-activo="@Model.activo">@i</a> } @if (page < totalPages) { <a asp-controller="@route" asp-action="Index" asp-route-page="@(page + 1)" asp-route-tipo="@Model.tipo" asp-route-estado="@Model.estado" asp-route-activo="@Model.activo">›</a> }</div></div>

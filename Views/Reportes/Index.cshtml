@@ -1,0 +1,92 @@
+@model ReportesPageViewModel
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@{
+    ViewData["Title"] = "Reportes y estadísticas";
+    var initialData = JsonSerializer.Serialize(Model.Data, new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Default
+    });
+}
+
+<div class="dashboard-page reports-page" data-reports-root data-data-url="@Model.DataUrl">
+    <div class="dashboard-heading">
+        <div>
+            <p class="eyebrow">ANÁLISIS COMERCIAL</p>
+            <h1>Reportes y estadísticas</h1>
+            <p class="page-subtitle">Analizá el rendimiento de la concesionaria sobre datos reales.</p>
+        </div>
+        <div class="reports-heading-actions">
+            <button class="btn btn-outline-secondary" type="button" disabled title="Disponible próximamente"><span class="material-symbols-rounded">table_view</span> Exportar Excel</button>
+            <button class="btn btn-action-primary" type="button" disabled title="Disponible próximamente"><span class="material-symbols-rounded">picture_as_pdf</span> Exportar PDF</button>
+        </div>
+    </div>
+
+    <form class="filter-card reports-filter-card" data-reports-filter>
+        <div>
+            <label class="form-label" for="reports-preset">Rango de fechas</label>
+            <select id="reports-preset" class="form-select reports-preset">
+                <option value="este-mes">Este mes</option>
+                <option value="ultimos-3-meses">Últimos 3 meses</option>
+                <option value="ultimo-anio">Último año</option>
+                <option value="personalizado">Personalizado</option>
+            </select>
+        </div>
+        <div class="reports-custom-range" hidden>
+            <label class="form-label" for="reports-desde">Desde</label>
+            <input id="reports-desde" class="form-control" type="date" value="@Model.Desde.ToString("yyyy-MM-dd")" />
+            <label class="form-label" for="reports-hasta">Hasta</label>
+            <input id="reports-hasta" class="form-control" type="date" value="@Model.Hasta.ToString("yyyy-MM-dd")" />
+        </div>
+        <div>
+            <label class="form-label" for="reports-seller">Vendedor</label>
+            <select id="reports-seller" class="form-select">
+                <option value="">Todos los vendedores</option>
+                @foreach (var seller in Model.Vendedores)
+                {
+                    <option value="@seller.Id">@seller.Nombre@(seller.Activo ? "" : " - inactivo")</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="reports-brand-model">Marca / Modelo</label>
+            <input id="reports-brand-model" class="form-control" type="search" placeholder="Ej. Toyota Corolla" />
+        </div>
+        <div>
+            <label class="form-label" for="reports-type">Tipo de vehículo</label>
+            <select id="reports-type" class="form-select">
+                <option value="">Todos los tipos</option>
+                <option value="Sedan">Sedán</option>
+                <option value="CuatroPuertas">4 Puertas</option>
+                <option value="CuatroPorCuatro">4x4</option>
+                <option value="Deportivo">Deportivo</option>
+            </select>
+        </div>
+    </form>
+
+    <div class="reports-chart-grid">
+        <section class="dashboard-card reports-chart-wide">
+            <div class="dashboard-card-heading"><div><h2>Ventas por mes</h2><p class="chart-subtitle">Unidades vendidas en el período</p></div><span class="material-symbols-rounded">bar_chart</span></div>
+            <div class="dashboard-chart-wrap"><canvas id="reports-monthly-sales-chart" aria-label="Ventas por mes"></canvas></div>
+        </section>
+        <section class="dashboard-card reports-chart-wide">
+            <div class="dashboard-card-heading"><div><h2>Facturación</h2><p class="chart-subtitle">Evolución del monto total</p></div><span class="material-symbols-rounded">payments</span></div>
+            <div class="dashboard-chart-wrap"><canvas id="reports-monthly-revenue-chart" aria-label="Facturación mensual"></canvas></div>
+        </section>
+        <section class="dashboard-card">
+            <div class="dashboard-card-heading"><div><h2>Comisiones</h2><p class="chart-subtitle">Total por vendedor</p></div><span class="material-symbols-rounded">account_balance_wallet</span></div>
+            <div class="dashboard-chart-wrap"><canvas id="reports-commission-chart" aria-label="Comisiones por vendedor"></canvas></div>
+        </section>
+        <section class="dashboard-card reports-chart-wide">
+            <div class="dashboard-card-heading"><div><h2>Ranking de vendedores</h2><p class="chart-subtitle">Orden descendente por cantidad de ventas</p></div><span class="material-symbols-rounded">leaderboard</span></div>
+            <div class="dashboard-chart-wrap"><canvas id="reports-ranking-chart" aria-label="Ranking de vendedores por ventas"></canvas></div>
+        </section>
+    </div>
+</div>
+
+<script type="application/json" data-reports-initial>@Html.Raw(initialData)</script>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="~/js/reportes.js" asp-append-version="true"></script>
+}

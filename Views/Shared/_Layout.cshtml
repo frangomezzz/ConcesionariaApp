@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ConcesionariaApp</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ConcesionariaApp.styles.css" asp-append-version="true" />
+</head>
+<body class="app-body">
+    <div class="app-shell">
+        <aside class="app-sidebar">
+            <a class="app-brand" asp-controller="Home" asp-action="Index"><span class="app-brand-icon material-symbols-rounded">directions_car</span><span><strong>Velocity Motors</strong><small>Automotive CRM</small></span></a>
+            <nav class="app-nav" aria-label="Navegación principal">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Dashboard"><span class="material-symbols-rounded">dashboard</span><span>Dashboard</span></a>
+                    <a asp-controller="Ventas" asp-action="Index"><span class="material-symbols-rounded">payments</span><span>Ventas</span></a>
+                    <a asp-controller="Vendedores" asp-action="Index"><span class="material-symbols-rounded">groups</span><span>Vendedores</span></a>
+                    <a asp-controller="Clientes" asp-action="Index"><span class="material-symbols-rounded">person_search</span><span>Clientes</span></a>
+                    <a asp-controller="Vehiculos" asp-action="Index"><span class="material-symbols-rounded">directions_car</span><span>Vehículos</span></a>
+                    <a asp-controller="Reportes" asp-action="Index"><span class="material-symbols-rounded">analytics</span><span>Reportes</span></a>
+                    <a asp-controller="Auditoria" asp-action="Index"><span class="material-symbols-rounded">history</span><span>Auditoría</span></a>
+                    <a asp-controller="Configuracion" asp-action="Index"><span class="material-symbols-rounded">settings</span><span>Configuración</span></a>
+                }
+                @if (User.IsInRole("Vendedor"))
+                {
+                    <a asp-controller="Vendedor" asp-action="Dashboard"><span class="material-symbols-rounded">dashboard</span><span>Dashboard</span></a>
+                    <a asp-controller="Ventas" asp-action="Registrar"><span class="material-symbols-rounded">add_circle</span><span>Registrar venta</span></a>
+                    <a asp-controller="Ventas" asp-action="MisVentas"><span class="material-symbols-rounded">payments</span><span>Mis ventas</span></a>
+                    <a asp-controller="Ventas" asp-action="MisComisiones"><span class="material-symbols-rounded">account_balance_wallet</span><span>Mis comisiones</span></a>
+                    <a asp-controller="Clientes" asp-action="Index"><span class="material-symbols-rounded">person_search</span><span>Clientes</span></a>
+                }
+            </nav>
+            <div class="sidebar-account"><partial name="_LoginPartial" /></div>
+        </aside>
+        <div class="app-content">
+            <header class="app-topbar"><span class="topbar-search"><span class="material-symbols-rounded">search</span> Buscar en el sistema...</span><span class="topbar-role">@User.Identity?.Name</span></header>
+            <main role="main" class="app-main">
+                @RenderBody()
+            </main>
+            <footer class="app-footer">&copy; 2026 - Velocity Motors</footer>
+        </div>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

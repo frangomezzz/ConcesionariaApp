@@ -1,0 +1,89 @@
+@model DashboardPageViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Dashboard Vendedor";
+    var initialData = JsonSerializer.Serialize(Model.Data, new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Default
+    });
+}
+
+<div class="dashboard-page" data-dashboard-root data-dashboard-role="seller" data-data-url="@Model.DataUrl">
+    <div class="dashboard-heading">
+        <div>
+            <p class="eyebrow">GESTIÓN COMERCIAL</p>
+            <h1>Dashboard</h1>
+            <p class="page-subtitle">Resumen de tu rendimiento comercial, @Model.Nombre.</p>
+        </div>
+        <div class="dashboard-heading-actions">
+            <div class="dashboard-filter-card">
+                <label class="visually-hidden" for="dashboard-preset">Rango de fechas</label>
+                <select id="dashboard-preset" class="form-select dashboard-preset">
+                    <option value="este-mes">Este mes</option>
+                    <option value="ultimos-3-meses">Últimos 3 meses</option>
+                    <option value="ultimo-anio">Último año</option>
+                    <option value="personalizado">Personalizado</option>
+                </select>
+                <div class="dashboard-custom-range" hidden>
+                    <label class="visually-hidden" for="dashboard-desde">Desde</label>
+                    <input id="dashboard-desde" class="form-control" type="date" value="@Model.Desde.ToString("yyyy-MM-dd")" />
+                    <span aria-hidden="true">a</span>
+                    <label class="visually-hidden" for="dashboard-hasta">Hasta</label>
+                    <input id="dashboard-hasta" class="form-control" type="date" value="@Model.Hasta.ToString("yyyy-MM-dd")" />
+                </div>
+            </div>
+            <a class="btn btn-action-success dashboard-sale-action" asp-controller="Ventas" asp-action="Registrar"><span class="material-symbols-rounded">add_circle</span> Registrar nueva venta</a>
+        </div>
+    </div>
+
+    <div class="metric-grid dashboard-seller-metrics">
+        <article class="metric-card">
+            <div class="metric-icon metric-icon-blue"><span class="material-symbols-rounded">sell</span></div>
+            <p id="sales-label">Mis ventas de este mes</p>
+            <strong data-metric="sales">0</strong>
+            <small>Ventas activas en el período</small>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon metric-icon-blue"><span class="material-symbols-rounded">account_balance</span></div>
+            <p>Total vendido</p>
+            <strong data-metric="total-vendido">$ 0</strong>
+            <small>Precio final de tus ventas activas</small>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon metric-icon-green"><span class="material-symbols-rounded">payments</span></div>
+            <p>Comisiones acumuladas</p>
+            <strong data-metric="comisiones">$ 0</strong>
+            <small>Snapshot guardado en cada venta</small>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon metric-icon-gray"><span class="material-symbols-rounded">directions_car</span></div>
+            <p>Vehículos vendidos</p>
+            <strong data-metric="vehiculos-vendidos">0</strong>
+            <small>Un vehículo por venta</small>
+        </article>
+    </div>
+
+    <div class="dashboard-chart-grid dashboard-seller-charts">
+        <section class="dashboard-card dashboard-chart-card dashboard-chart-wide">
+            <div class="dashboard-card-heading"><h2>Evolución de ventas mensuales</h2><span class="material-symbols-rounded">more_horiz</span></div>
+            <div class="dashboard-chart-wrap dashboard-line-wrap"><canvas id="monthly-sales-chart" aria-label="Evolución mensual de ventas"></canvas></div>
+        </section>
+        <aside class="dashboard-card dashboard-note-card">
+            <div class="dashboard-card-heading"><h2>Acceso rápido</h2></div>
+            <p>Registrá una nueva operación y el sistema calculará automáticamente el precio final y tu comisión.</p>
+            <a class="btn btn-action-primary" asp-controller="Ventas" asp-action="Registrar"><span class="material-symbols-rounded">add</span> Nueva venta</a>
+        </aside>
+    </div>
+
+    <section class="dashboard-card dashboard-sales-card">
+        <div class="dashboard-card-heading dashboard-table-heading"><h2>Mis últimas ventas</h2><a asp-controller="Ventas" asp-action="MisVentas">Ver reporte completo</a></div>
+        <div class="table-responsive"><table class="table align-middle mb-0 admin-table dashboard-sales-table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Vehículo</th><th>Precio final</th><th>Comisión</th><th>Estado</th></tr></thead><tbody data-sales-rows></tbody></table></div>
+    </section>
+</div>
+
+<script type="application/json" data-dashboard-initial>@Html.Raw(initialData)</script>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,165 @@
+@model VentaRegistrarViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Registrar venta";
+    var selectedClient = Model.ClienteSeleccionado;
+    var selectedVehicle = Model.VehiculoSeleccionado;
+}
+<div class="sale-page">
+    <div class="page-heading">
+        <p class="eyebrow">GESTIÓN COMERCIAL</p>
+        <h1>Registrar venta</h1>
+        <p class="page-subtitle">Completá los datos para registrar una nueva operación.</p>
+    </div>
+
+    <form method="post" id="sale-form">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <div class="sale-layout">
+            <div class="sale-form-column">
+                <section class="sale-section form-card">
+                    <div class="sale-section-heading"><span class="sale-step">1</span><div><h2>Seleccionar cliente</h2><p>Buscá por nombre, apellido o DNI.</p></div></div>
+                    <div class="autocomplete-wrap">
+                        <label class="form-label" for="client-search">Cliente</label>
+                        <input class="form-control" id="client-search" autocomplete="off" placeholder="Escribí un nombre o DNI..." value="@(selectedClient is null ? "" : $"{selectedClient.Nombre} {selectedClient.Apellido}")" />
+                        <div class="autocomplete-results" id="client-results"></div>
+                    </div>
+                    <input type="hidden" asp-for="ClienteId" id="client-id" />
+                    <div class="selected-record @(selectedClient is null ? "d-none" : "")" id="selected-client">
+                        @if (selectedClient is not null)
+                        {
+                            <div><strong>@selectedClient.Nombre @selectedClient.Apellido</strong><small>DNI: @selectedClient.DNI</small></div>
+                        }
+                        <button type="button" class="icon-button" id="clear-client" aria-label="Quitar cliente">×</button>
+                    </div>
+                    <a class="create-record-link" asp-controller="Clientes" asp-action="Nuevo"><span class="material-symbols-rounded">person_add</span> Crear nuevo cliente</a>
+                </section>
+
+                <section class="sale-section form-card">
+                    <div class="sale-section-heading"><span class="sale-step">2</span><div><h2>Seleccionar vehículo</h2><p>Solo se muestran vehículos disponibles.</p></div></div>
+                    <div class="autocomplete-wrap">
+                        <label class="form-label" for="vehicle-search">Vehículo</label>
+                        <input class="form-control" id="vehicle-search" autocomplete="off" placeholder="Marca, modelo o patente..." value="@(selectedVehicle is null ? "" : $"{selectedVehicle.Anio} {selectedVehicle.Marca} {selectedVehicle.Modelo}")" />
+                        <div class="autocomplete-results" id="vehicle-results"></div>
+                    </div>
+                    <input type="hidden" asp-for="VehiculoId" id="vehicle-id" />
+                    <div class="vehicle-record @(selectedVehicle is null ? "d-none" : "")" id="selected-vehicle">
+                        @if (selectedVehicle is not null)
+                        {
+                            <div class="vehicle-record-title"><strong>@selectedVehicle.Anio @selectedVehicle.Marca @selectedVehicle.Modelo</strong><span class="status-badge status-@selectedVehicle.Estado.ToString().ToLowerInvariant()">@Display(selectedVehicle.Estado)</span></div>
+                            <div class="vehicle-record-grid"><span><small>Marca</small>@selectedVehicle.Marca</span><span><small>Modelo</small>@selectedVehicle.Modelo</span><span><small>Año</small>@selectedVehicle.Anio</span><span><small>Tipo</small>@Display(selectedVehicle.Tipo)</span><span><small>Color</small>@selectedVehicle.Color</span><span><small>Precio base</small>@selectedVehicle.PrecioBase.ToString("C", CultureInfo.GetCultureInfo("es-AR"))</span></div>
+                        }
+                        <button type="button" class="icon-button vehicle-clear" id="clear-vehicle" aria-label="Quitar vehículo">×</button>
+                    </div>
+                </section>
+
+                <section class="sale-section form-card">
+                    <div class="sale-section-heading"><span class="sale-step">3</span><div><h2>Datos de la venta</h2><p>Definí la fecha y las condiciones de pago.</p></div></div>
+                    <div class="row g-3">
+                        <div class="col-md-5"><label asp-for="FechaVenta" class="form-label">Fecha</label><input asp-for="FechaVenta" class="form-control" type="date" id="sale-date" /></div>
+                        <div class="col-md-7"><label class="form-label">Forma de pago</label><div class="payment-options"><label><input asp-for="MetodoPago" type="radio" value="Efectivo" /> Efectivo</label><label><input asp-for="MetodoPago" type="radio" value="Tarjeta" /> Tarjeta</label><label><input asp-for="MetodoPago" type="radio" value="FinanciacionPropia" /> Financiación propia</label></div></div>
+                        <div class="col-md-5"><label asp-for="CantidadCuotas" class="form-label">Cantidad de cuotas</label><select asp-for="CantidadCuotas" class="form-select" id="installments"><option value="1">1 cuota</option><option value="2">2 cuotas</option><option value="3">3 cuotas</option><option value="4">4 cuotas</option><option value="5">5 cuotas</option><option value="6">6 cuotas</option><option value="7">7 cuotas</option><option value="8">8 cuotas</option><option value="9">9 cuotas</option><option value="10">10 cuotas</option><option value="11">11 cuotas</option><option value="12">12 cuotas</option></select></div>
+                        <div class="col-12"><label asp-for="Observaciones" class="form-label">Observaciones <span class="optional">Opcional</span></label><textarea asp-for="Observaciones" class="form-control" rows="4" placeholder="Agregá notas relevantes de la operación..."></textarea></div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="sale-summary form-card" id="sale-summary" aria-live="polite">
+                <div class="summary-heading"><p class="eyebrow">RESUMEN</p><h2>Detalle de la operación</h2></div>
+                <div class="summary-placeholder" id="summary-placeholder">Seleccioná un vehículo para calcular el precio final y la comisión estimada.</div>
+                <div class="summary-content d-none" id="summary-content">
+                    <div class="summary-row"><span>Precio base</span><strong id="summary-base"></strong></div>
+                    <div class="summary-row"><span>Recargo por cuotas</span><strong id="summary-surcharge"></strong></div>
+                    <div class="summary-total"><span>Precio final</span><strong id="summary-final"></strong></div>
+                    <div class="summary-commission"><span>Comisión estimada</span><strong id="summary-commission"></strong></div>
+                </div>
+                <div class="summary-error d-none" id="summary-error"></div>
+                <button class="btn btn-action-success btn-lg w-100 mt-4" type="submit"><span class="material-symbols-rounded">check_circle</span> Guardar venta</button>
+                <a class="btn btn-outline-secondary w-100 mt-2" asp-controller="Vendedor" asp-action="Dashboard">Cancelar</a>
+            </aside>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const form = document.getElementById('sale-form');
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+            const clientSearch = document.getElementById('client-search');
+            const vehicleSearch = document.getElementById('vehicle-search');
+            const clientResults = document.getElementById('client-results');
+            const vehicleResults = document.getElementById('vehicle-results');
+            const clientId = document.getElementById('client-id');
+            const vehicleId = document.getElementById('vehicle-id');
+            const selectedClient = document.getElementById('selected-client');
+            const selectedVehicle = document.getElementById('selected-vehicle');
+            const installments = document.getElementById('installments');
+            const date = document.getElementById('sale-date');
+            const summaryPlaceholder = document.getElementById('summary-placeholder');
+            const summaryContent = document.getElementById('summary-content');
+            const summaryError = document.getElementById('summary-error');
+            let clientTimer;
+            let vehicleTimer;
+            let previewRequest;
+
+            const money = value => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 2 }).format(value);
+            const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+            const showResults = (element, results, type) => {
+                element.innerHTML = results.map(item => type === 'client'
+                    ? `<button type="button" data-id="${item.id}" data-name="${escapeHtml(item.nombre)}" data-dni="${escapeHtml(item.dni)}"><strong>${escapeHtml(item.nombre)}</strong><small>DNI: ${escapeHtml(item.dni)}</small></button>`
+                    : `<button type="button" data-id="${item.id}" data-item="${encodeURIComponent(JSON.stringify(item))}"><strong>${escapeHtml(item.descripcion)}</strong><small>${escapeHtml(item.tipo)} · ${escapeHtml(item.color)} · ${money(item.precioBase)}</small></button>`).join('');
+                element.classList.toggle('is-open', results.length > 0);
+            };
+            const search = (input, results, type) => {
+                clearTimeout(type === 'client' ? clientTimer : vehicleTimer);
+                const term = input.value.trim();
+                const timer = setTimeout(async () => {
+                    const endpoint = type === 'client' ? 'BuscarClientes' : 'BuscarVehiculos';
+                    const response = await fetch(`/Ventas/${endpoint}?term=${encodeURIComponent(term)}`);
+                    if (response.ok) showResults(results, await response.json(), type);
+                }, 180);
+                if (type === 'client') clientTimer = timer; else vehicleTimer = timer;
+            };
+            clientSearch.addEventListener('input', () => { clientId.value = ''; selectedClient.classList.add('d-none'); search(clientSearch, clientResults, 'client'); });
+            vehicleSearch.addEventListener('input', () => { vehicleId.value = ''; selectedVehicle.classList.add('d-none'); search(vehicleSearch, vehicleResults, 'vehicle'); refreshPreview(); });
+            clientResults.addEventListener('click', event => {
+                const button = event.target.closest('button'); if (!button) return;
+                clientId.value = button.dataset.id; clientSearch.value = button.dataset.name;
+                selectedClient.innerHTML = `<div><strong>${escapeHtml(button.dataset.name)}</strong><small>DNI: ${escapeHtml(button.dataset.dni)}</small></div><button type="button" class="icon-button" id="clear-client" aria-label="Quitar cliente">×</button>`;
+                selectedClient.classList.remove('d-none'); clientResults.classList.remove('is-open');
+            });
+            vehicleResults.addEventListener('click', event => {
+                const button = event.target.closest('button'); if (!button) return;
+                const item = JSON.parse(decodeURIComponent(button.dataset.item)); vehicleId.value = item.id; vehicleSearch.value = item.descripcion;
+                selectedVehicle.innerHTML = `<div class="vehicle-record-title"><strong>${escapeHtml(item.descripcion)}</strong><span class="status-badge status-disponible">Disponible</span></div><div class="vehicle-record-grid"><span><small>Marca</small>${escapeHtml(item.marca)}</span><span><small>Modelo</small>${escapeHtml(item.modelo)}</span><span><small>Año</small>${item.anio}</span><span><small>Tipo</small>${escapeHtml(item.tipo)}</span><span><small>Color</small>${escapeHtml(item.color)}</span><span><small>Precio base</small>${money(item.precioBase)}</span></div><button type="button" class="icon-button vehicle-clear" id="clear-vehicle" aria-label="Quitar vehículo">×</button>`;
+                selectedVehicle.classList.remove('d-none'); vehicleResults.classList.remove('is-open'); refreshPreview();
+            });
+            document.addEventListener('click', event => {
+                if (!event.target.closest('.autocomplete-wrap')) document.querySelectorAll('.autocomplete-results').forEach(x => x.classList.remove('is-open'));
+                if (event.target.closest('#clear-client')) { clientId.value = ''; clientSearch.value = ''; selectedClient.classList.add('d-none'); }
+                if (event.target.closest('#clear-vehicle')) { vehicleId.value = ''; vehicleSearch.value = ''; selectedVehicle.classList.add('d-none'); resetSummary(); }
+            });
+            document.querySelectorAll('input[name="MetodoPago"]').forEach(input => input.addEventListener('change', () => { if (input.checked && input.value === 'Efectivo') installments.value = '1'; installments.disabled = document.querySelector('input[name="MetodoPago"]:checked').value === 'Efectivo'; refreshPreview(); }));
+            installments.addEventListener('change', refreshPreview); date.addEventListener('change', refreshPreview);
+            const resetSummary = () => { summaryPlaceholder.classList.remove('d-none'); summaryContent.classList.add('d-none'); summaryError.classList.add('d-none'); };
+            const refreshPreview = async () => {
+                if (!vehicleId.value) { resetSummary(); return; }
+                if (previewRequest) previewRequest.abort();
+                previewRequest = new AbortController();
+                const data = new URLSearchParams({ __RequestVerificationToken: token, VehiculoId: vehicleId.value, FechaVenta: date.value, MetodoPago: document.querySelector('input[name="MetodoPago"]:checked').value, CantidadCuotas: installments.value });
+                try {
+                    const response = await fetch('/Ventas/CalcularPreview', { method: 'POST', body: data, signal: previewRequest.signal });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || 'No se pudo calcular el resumen.');
+                    summaryPlaceholder.classList.add('d-none'); summaryContent.classList.remove('d-none'); summaryError.classList.add('d-none');
+                    document.getElementById('summary-base').textContent = money(result.precioBase); document.getElementById('summary-surcharge').textContent = `${result.porcentajeRecargo}%`; document.getElementById('summary-final').textContent = money(result.precioFinal); document.getElementById('summary-commission').textContent = `${money(result.comision)} (${result.porcentajeComision}%)`;
+                } catch (error) { if (error.name !== 'AbortError') { summaryContent.classList.add('d-none'); summaryPlaceholder.classList.add('d-none'); summaryError.textContent = error.message; summaryError.classList.remove('d-none'); } }
+            };
+            installments.disabled = document.querySelector('input[name="MetodoPago"]:checked').value === 'Efectivo';
+            refreshPreview();
+        })();
+    </script>
+}
+@functions { string Display(TipoVehiculo value) => value switch { TipoVehiculo.Sedan => "Sedán", TipoVehiculo.CuatroPuertas => "4 Puertas", TipoVehiculo.CuatroPorCuatro => "4x4", TipoVehiculo.Deportivo => "Deportivo", _ => value.ToString() }; string Display(EstadoVehiculo value) => value switch { EstadoVehiculo.Disponible => "Disponible", EstadoVehiculo.Reservado => "Reservado", EstadoVehiculo.Vendido => "Vendido", _ => value.ToString() }; }

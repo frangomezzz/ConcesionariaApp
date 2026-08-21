@@ -1,0 +1,47 @@
+@model LoginViewModel
+@{
+    Layout = null;
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar sesión | Velocity Motors</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="login-page">
+    <main class="login-shell">
+        <section class="login-card" aria-labelledby="login-title">
+            <div class="brand-mark" aria-hidden="true"><span>V</span></div>
+            <p class="brand-name">VELOCITY MOTORS</p>
+            <h1 id="login-title">Bienvenido a Velocity Motors</h1>
+            <p class="login-lead">Accedé a tu plataforma de gestión automotriz.</p>
+
+            <form asp-controller="Account" asp-action="Login" method="post" class="login-form">
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control form-control-lg" autocomplete="username" placeholder="usuario@ejemplo.com" autofocus />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control form-control-lg" autocomplete="current-password" placeholder="••••••••" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div class="form-check remember-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label"></label>
+                </div>
+                <button type="submit" class="btn btn-login btn-lg w-100">INICIAR SESIÓN</button>
+            </form>
+        </section>
+        <p class="system-status"><span></span>SISTEMA OPERATIVO</p>
+    </main>
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

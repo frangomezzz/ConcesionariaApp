@@ -1,0 +1,139 @@
+@using System.Globalization
+@model ConfiguracionIndexViewModel
+@{
+    ViewData["Title"] = "Configuración de Comisiones y Recargos";
+    string Number(decimal value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+    string? OptionalNumber(int? value) => value?.ToString(CultureInfo.InvariantCulture);
+    string Display(TipoVehiculo tipo) => tipo switch
+    {
+        TipoVehiculo.Sedan => "Sedán",
+        TipoVehiculo.CuatroPuertas => "4 Puertas",
+        TipoVehiculo.CuatroPorCuatro => "4x4",
+        TipoVehiculo.Deportivo => "Deportivo",
+        _ => tipo.ToString()
+    };
+}
+
+<div class="admin-page configuration-page">
+    <div class="page-heading">
+        <p class="eyebrow">ADMINISTRACIÓN</p>
+        <h1>Configuración de Comisiones y Recargos</h1>
+        <p class="page-subtitle">Administrá las reglas que se aplican a las ventas nuevas.</p>
+    </div>
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success">@success</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+    }
+
+    <div class="configuration-notice">
+        <span class="material-symbols-rounded">info</span>
+        <div><strong>Aviso Importante</strong><p>Los cambios aquí no afectan ventas ya cargadas — solo aplican a ventas nuevas.</p></div>
+    </div>
+
+    <section class="configuration-card">
+        <div class="configuration-card-heading">
+            <div><p class="eyebrow">REGLA BASE</p><h2>Comisión por tipo de vehículo</h2></div>
+            <span class="configuration-fixed-note">4 tipos fijos</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 admin-table configuration-table">
+                <thead><tr><th>Tipo</th><th>Porcentaje base</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+                @foreach (var item in Model.ComisionesPorTipo)
+                {
+                    <tr>
+                        <td><strong>@Display(item.Tipo)</strong></td>
+                        <td>
+                            <form method="post" asp-action="EditarTipo" asp-route-tipo="@item.Tipo" class="configuration-type-form">
+                                <input type="number" name="PorcentajeBase" value="@Number(item.PorcentajeBase)" min="0" max="1000" step="0.001" class="form-control configuration-number" aria-label="Porcentaje base para @Display(item.Tipo)" />
+                                <span>%</span>
+                                <button class="btn btn-sm btn-action-primary" type="submit" title="Guardar porcentaje"><span class="material-symbols-rounded">edit</span><span class="visually-hidden">Guardar</span></button>
+                            </form>
+                        </td>
+                        <td class="text-end">@(item.Configurada ? "Configurada" : "Sin configurar")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="configuration-grid">
+        <section class="configuration-card">
+            <div class="configuration-card-heading">
+                <div><p class="eyebrow">COMISIÓN ADICIONAL</p><h2>Antigüedad del vendedor</h2></div>
+            </div>
+            <form method="post" asp-action="NuevoAntiguedad" class="configuration-add-form">
+                <div><label for="new-age-min">Meses min.</label><input id="new-age-min" name="MesesMin" type="number" min="0" required class="form-control" /></div>
+                <div><label for="new-age-max">Meses max.</label><input id="new-age-max" name="MesesMax" type="number" min="0" class="form-control" placeholder="Sin tope" /></div>
+                <div><label for="new-age-percent">Adicional</label><input id="new-age-percent" name="PorcentajeAdicional" type="number" min="0" max="1000" step="0.001" required class="form-control" /></div>
+                <button class="btn btn-action-primary" type="submit"><span class="material-symbols-rounded">add</span> Agregar tramo</button>
+            </form>
+            <div class="visually-hidden">
+                @foreach (var item in Model.ComisionesPorAntiguedad)
+                {
+                    <form id="age-@item.Id" method="post" asp-action="EditarAntiguedad" asp-route-id="@item.Id"></form>
+                }
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 admin-table configuration-table">
+                    <thead><tr><th>Rango (meses)</th><th>Adicional</th><th class="text-end">Acciones</th></tr></thead>
+                    <tbody>
+                    @foreach (var item in Model.ComisionesPorAntiguedad)
+                    {
+                        var formId = $"age-{item.Id}";
+                        <tr>
+                            <td class="configuration-range-inputs"><input form="@formId" name="MesesMin" type="number" value="@item.MesesMin" min="0" required class="form-control" aria-label="Mínimo de meses" /><span>-</span><input form="@formId" name="MesesMax" type="number" value="@OptionalNumber(item.MesesMax)" min="0" class="form-control" placeholder="Sin tope" aria-label="Máximo de meses" /></td>
+                            <td><div class="configuration-percent-input"><input form="@formId" name="PorcentajeAdicional" type="number" value="@Number(item.PorcentajeAdicional)" min="0" max="1000" step="0.001" required class="form-control" aria-label="Porcentaje adicional" /><span>%</span></div></td>
+                            <td class="text-end text-nowrap"><button form="@formId" class="btn btn-sm btn-action-primary" type="submit" title="Guardar tramo"><span class="material-symbols-rounded">edit</span></button><form method="post" asp-action="EliminarAntiguedad" asp-route-id="@item.Id" class="d-inline"><button class="btn btn-sm btn-action-danger" type="submit" title="Eliminar tramo"><span class="material-symbols-rounded">delete</span></button></form></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="configuration-card">
+            <div class="configuration-card-heading">
+                <div><p class="eyebrow">PRECIO FINAL</p><h2>Recargo por cuotas</h2></div>
+            </div>
+            <form method="post" asp-action="NuevoCuotas" class="configuration-add-form">
+                <div><label for="new-quota-min">Cuotas min.</label><input id="new-quota-min" name="CuotasMin" type="number" min="1" required class="form-control" /></div>
+                <div><label for="new-quota-max">Cuotas max.</label><input id="new-quota-max" name="CuotasMax" type="number" min="1" class="form-control" placeholder="Sin tope" /></div>
+                <div><label for="new-quota-percent">Recargo</label><input id="new-quota-percent" name="PorcentajeRecargo" type="number" min="0" max="1000" step="0.001" required class="form-control" /></div>
+                <button class="btn btn-action-primary" type="submit"><span class="material-symbols-rounded">add</span> Agregar tramo</button>
+            </form>
+            <div class="visually-hidden">
+                @foreach (var item in Model.RecargosPorCuotas)
+                {
+                    <form id="quota-@item.Id" method="post" asp-action="EditarCuotas" asp-route-id="@item.Id"></form>
+                }
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 admin-table configuration-table">
+                    <thead><tr><th>Rango de cuotas</th><th>Recargo</th><th class="text-end">Acciones</th></tr></thead>
+                    <tbody>
+                    @foreach (var item in Model.RecargosPorCuotas)
+                    {
+                        var formId = $"quota-{item.Id}";
+                        <tr>
+                            <td class="configuration-range-inputs"><input form="@formId" name="CuotasMin" type="number" value="@item.CuotasMin" min="1" required class="form-control" aria-label="Mínimo de cuotas" /><span>-</span><input form="@formId" name="CuotasMax" type="number" value="@OptionalNumber(item.CuotasMax)" min="1" class="form-control" placeholder="Sin tope" aria-label="Máximo de cuotas" /></td>
+                            <td><div class="configuration-percent-input"><input form="@formId" name="PorcentajeRecargo" type="number" value="@Number(item.PorcentajeRecargo)" min="0" max="1000" step="0.001" required class="form-control" aria-label="Porcentaje de recargo" /><span>%</span></div></td>
+                            <td class="text-end text-nowrap"><button form="@formId" class="btn btn-sm btn-action-primary" type="submit" title="Guardar tramo"><span class="material-symbols-rounded">edit</span></button><form method="post" asp-action="EliminarCuotas" asp-route-id="@item.Id" class="d-inline"><button class="btn btn-sm btn-action-danger" type="submit" title="Eliminar tramo"><span class="material-symbols-rounded">delete</span></button></form></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>

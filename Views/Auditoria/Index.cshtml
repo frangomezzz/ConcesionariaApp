@@ -1,0 +1,129 @@
+@model AuditoriaPageViewModel
+@{
+    ViewData["Title"] = "Auditoría";
+    var presetValue = Model.Preset switch
+    {
+        DashboardDatePreset.UltimosTresMeses => "ultimos-3-meses",
+        DashboardDatePreset.UltimoAnio => "ultimo-anio",
+        DashboardDatePreset.Personalizado => "personalizado",
+        _ => "este-mes"
+    };
+}
+
+<div class="admin-page audit-page">
+    <div class="page-heading d-flex justify-content-between align-items-start gap-3">
+        <div>
+            <p class="eyebrow">CONTROL Y TRAZABILIDAD</p>
+            <h1>Auditoría del sistema</h1>
+            <p class="page-subtitle">Consultá las acciones administrativas y los eventos registrados.</p>
+        </div>
+        <button class="btn btn-outline-secondary" type="button" disabled title="Disponible próximamente">
+            <span class="material-symbols-rounded">download</span> Exportar reporte
+        </button>
+    </div>
+
+    <form method="get" class="filter-card audit-filter-card" data-audit-filter>
+        <div>
+            <label class="form-label" for="audit-user">Usuario</label>
+            <select class="form-select" id="audit-user" name="usuarioId">
+                <option value="">Todos los usuarios</option>
+                @foreach (var user in Model.Usuarios)
+                {
+                    <option value="@user.Id" selected="@(Model.UsuarioId == user.Id ? "selected" : null)">@user.Nombre (@user.Rol)@(user.Activo ? "" : " - inactivo")</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="audit-action">Tipo de acción</label>
+            <select class="form-select" id="audit-action" name="accion">
+                <option value="">Todas las acciones</option>
+                @foreach (var action in Model.Acciones)
+                {
+                    <option value="@action" selected="@(Model.Accion == action ? "selected" : null)">@action</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="audit-preset">Rango de fechas</label>
+            <select class="form-select" id="audit-preset" name="preset">
+                <option value="este-mes" selected="@(presetValue == "este-mes" ? "selected" : null)">Este mes</option>
+                <option value="ultimos-3-meses" selected="@(presetValue == "ultimos-3-meses" ? "selected" : null)">Últimos 3 meses</option>
+                <option value="ultimo-anio" selected="@(presetValue == "ultimo-anio" ? "selected" : null)">Último año</option>
+                <option value="personalizado" selected="@(presetValue == "personalizado" ? "selected" : null)">Personalizado</option>
+            </select>
+        </div>
+        <div class="audit-custom-range" hidden>
+            <label class="form-label" for="audit-desde">Desde</label>
+            <input class="form-control" id="audit-desde" name="desde" type="date" value="@Model.Desde.ToString("yyyy-MM-dd")" />
+            <label class="form-label" for="audit-hasta">Hasta</label>
+            <input class="form-control" id="audit-hasta" name="hasta" type="date" value="@Model.Hasta.ToString("yyyy-MM-dd")" />
+        </div>
+        <input type="hidden" name="page" value="1" />
+    </form>
+
+    <div class="table-card audit-table-card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 admin-table">
+                <thead>
+                    <tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Entidad afectada</th><th>Detalle</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Registros.Items)
+                {
+                    var modalId = $"audit-detail-{item.Id}";
+                    <tr>
+                        <td class="audit-date">@item.Fecha.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        <td><strong>@item.Usuario</strong><small class="d-block text-muted">@item.Rol</small></td>
+                        <td><span class="audit-action-badge">@item.Accion</span></td>
+                        <td>@item.EntidadAfectada <small class="d-block text-muted">ID: @item.EntidadId</small></td>
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(item.DetalleJson))
+                            {
+                                <span class="text-muted">Sin detalle</span>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#@modalId">
+                                    <span class="material-symbols-rounded">visibility</span> Ver detalle
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (Model.Registros.Items.Count == 0)
+                {
+                    <tr><td colspan="5" class="empty-state">No hay registros para los filtros seleccionados.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        @foreach (var item in Model.Registros.Items.Where(x => !string.IsNullOrWhiteSpace(x.DetalleJson)))
+        {
+            var modalId = $"audit-detail-{item.Id}";
+            <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@modalId-title" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div><p class="eyebrow mb-1">@item.Accion</p><h2 class="modal-title fs-5" id="@modalId-title">Detalle de auditoría #@item.Id</h2></div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body"><pre class="audit-json">@item.DetalleJson</pre></div>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="pagination-bar">
+            <span>Mostrando @((Model.Registros.Page - 1) * Model.Registros.PageSize + (Model.Registros.TotalItems == 0 ? 0 : 1)) a @Math.Min(Model.Registros.Page * Model.Registros.PageSize, Model.Registros.TotalItems) de @Model.Registros.TotalItems registros</span>
+            <div class="pagination-links">
+                @for (var i = 1; i <= Model.Registros.TotalPages; i++)
+                {
+                    <a class="@(i == Model.Registros.Page ? "active" : "")" asp-action="Index" asp-route-preset="@presetValue" asp-route-desde="@Model.Desde.ToString("yyyy-MM-dd")" asp-route-hasta="@Model.Hasta.ToString("yyyy-MM-dd")" asp-route-usuarioId="@Model.UsuarioId" asp-route-accion="@Model.Accion" asp-route-page="@i">@i</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/auditoria.js" asp-append-version="true"></script>
+}
