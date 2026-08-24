@@ -118,7 +118,7 @@ La aplicación obtiene la cadena de conexión mediante `ConnectionStrings:Defaul
 
 ```bash
 dotnet user-secrets --project src/ConcesionariaApp/ConcesionariaApp.csproj init
-dotnet user-secrets --project src/ConcesionariaApp/ConcesionariaApp.csproj set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=ConcesionariaApp;Trusted_Connection=True;TrustServerCertificate=True;"
+dotnet user-secrets --project src/ConcesionariaApp/ConcesionariaApp.csproj set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=ConcesionariaApp;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=False;"
 ```
 
 En un entorno de desarrollo también se puede crear el usuario administrador inicial configurando una contraseña mediante User Secrets:

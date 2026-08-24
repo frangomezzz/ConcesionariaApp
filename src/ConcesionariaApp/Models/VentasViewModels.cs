@@ -13,7 +13,7 @@ public sealed class VentaRegistrarViewModel
     [DataType(DataType.Date), Required(ErrorMessage = "Ingresá la fecha de venta.")]
     public DateTime FechaVenta { get; set; } = DateTime.Today;
 
-    [Required]
+    [Required, EnumDataType(typeof(MetodoPago))]
     public MetodoPago MetodoPago { get; set; } = MetodoPago.Efectivo;
 
     [Range(1, 12, ErrorMessage = "La cantidad de cuotas debe estar entre 1 y 12.")]
@@ -30,7 +30,9 @@ public sealed class PreviewVentaRequest
 {
     public int VehiculoId { get; set; }
     public DateTime FechaVenta { get; set; }
+    [EnumDataType(typeof(MetodoPago))]
     public MetodoPago MetodoPago { get; set; }
+    [Range(1, 12)]
     public int CantidadCuotas { get; set; }
 }
 

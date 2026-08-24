@@ -151,7 +151,7 @@ public class VendedoresController(
         if (seller is null) return NotFound();
         var before = Snapshot(seller);
         seller.Activo = false;
-        var result = await userManager.UpdateAsync(seller);
+        var result = await userManager.UpdateSecurityStampAsync(seller);
         if (!result.Succeeded) { AddIdentityErrors(result); return RedirectToAction(nameof(Index)); }
         await auditoria.RegistrarAsync("DesactivoVendedor", nameof(Usuario), id, before, Snapshot(seller));
         TempData["Success"] = "Vendedor desactivado correctamente.";

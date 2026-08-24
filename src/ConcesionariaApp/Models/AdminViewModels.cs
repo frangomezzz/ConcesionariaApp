@@ -23,7 +23,7 @@ public sealed class VehiculoFormViewModel
     [Required, StringLength(80)] public string Marca { get; set; } = "";
     [Required, StringLength(80)] public string Modelo { get; set; } = "";
     [Range(1900, 2100)] public int Anio { get; set; }
-    [Required] public TipoVehiculo Tipo { get; set; }
+    [Required, EnumDataType(typeof(TipoVehiculo))] public TipoVehiculo Tipo { get; set; }
     public bool EsUsado { get; set; }
     [StringLength(10)] public string? Patente { get; set; }
     [Required, StringLength(80)] public string Color { get; set; } = "";
@@ -37,7 +37,7 @@ public sealed class VehiculoEstadoViewModel
 {
     public int Id { get; set; }
     public string Descripcion { get; set; } = "";
-    [Required] public EstadoVehiculo Estado { get; set; }
+    [Required, EnumDataType(typeof(EstadoVehiculo))] public EstadoVehiculo Estado { get; set; }
 }
 
 public sealed class VendedorListItem

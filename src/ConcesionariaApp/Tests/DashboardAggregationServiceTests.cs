@@ -44,4 +44,13 @@ public sealed class DashboardAggregationServiceTests
 
         Assert.Contains("posterior", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void RechazaRangoPersonalizadoDemasiadoAmplio()
+    {
+        var exception = Assert.Throws<ArgumentException>(() => service.ResolveRange(
+            "personalizado", DateTime.Today.AddYears(-11), DateTime.Today));
+
+        Assert.Contains("10 años", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }

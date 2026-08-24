@@ -7,6 +7,7 @@ namespace ConcesionariaApp.Services;
 public sealed class DashboardAggregationService(ApplicationDbContext db)
 {
     private const int LatestSalesLimit = 15;
+    private static readonly TimeSpan MaxCustomRange = TimeSpan.FromDays(3663);
 
     public DashboardDateRange ResolveRange(string? preset, DateTime? desde, DateTime? hasta)
     {
@@ -242,6 +243,8 @@ public sealed class DashboardAggregationService(ApplicationDbContext db)
         var end = hasta.Value.Date;
         if (start > end)
             throw new ArgumentException("La fecha desde no puede ser posterior a la fecha hasta.");
+        if (end == DateTime.MaxValue.Date || end - start > MaxCustomRange)
+            throw new ArgumentException("El rango personalizado no puede superar los 10 años.");
 
         return new(start, end);
     }

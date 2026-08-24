@@ -130,6 +130,9 @@ public class VentasController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CalcularPreview(PreviewVentaRequest request)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(new { error = "Los datos de la vista previa no son válidos." });
+
         if (request.MetodoPago == MetodoPago.Efectivo)
             request.CantidadCuotas = 1;
 
@@ -230,9 +233,10 @@ public class VentasController(
         var hastaReal = (hasta ?? hoy).Date;
         var query = db.Ventas.AsNoTracking().Where(x => x.VendedorId == vendedor.Id && x.FechaVenta >= desdeReal && x.FechaVenta < hastaReal.AddDays(1));
         var activos = query.Where(x => x.Estado == EstadoVenta.Activa);
-        var items = await ProjectListQuery(query).OrderByDescending(x => x.FechaVenta).ToListAsync();
-        var total = items.Count;
+        var total = await query.CountAsync();
         page = ClampPage(page, total);
+        var items = await ProjectListQuery(query).OrderByDescending(x => x.FechaVenta)
+            .Skip((page - 1) * PageSize).Take(PageSize).ToListAsync();
 
         var monthStart = new DateTime(hoy.Year, hoy.Month, 1);
         var monthEnd = monthStart.AddMonths(1);
@@ -242,7 +246,7 @@ public class VentasController(
 
         return View(new MisComisionesViewModel
         {
-            Items = items.Skip((page - 1) * PageSize).Take(PageSize).ToList(),
+            Items = items,
             Page = page,
             PageSize = PageSize,
             TotalItems = total,
