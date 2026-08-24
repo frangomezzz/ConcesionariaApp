@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ConcesionariaApp/ConcesionariaApp.csproj" />
+  </Folder>
+  <Folder Name="/src/ConcesionariaApp/" />
+  <Folder Name="/src/ConcesionariaApp/Tests/">
+    <Project Path="src/ConcesionariaApp/Tests/ConcesionariaApp.Tests.csproj" />
+  </Folder>
+</Solution>
